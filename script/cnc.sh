@@ -9,7 +9,8 @@ PODMAN_ID=$(tr -dc 'a-z0-9' </dev/urandom | head -c 8)
 CONTAINER_NAME="olcrtc-client-$PODMAN_ID"
 IMAGE_NAME="docker.io/library/golang:1.26-alpine"
 REPO_URL="https://github.com/openlibrecommunity/olcrtc.git"
-WORK_DIR="/tmp/olcrtc-client-$PODMAN_ID"
+DEPLOY_ROOT="${OLCRTC_DEPLOY_ROOT:-$HOME/.olrtc}"
+WORK_DIR="$DEPLOY_ROOT/client-$PODMAN_ID"
 
 SOCKS_IP="127.0.0.1"
 SOCKS_PORT="8808"
@@ -249,9 +250,9 @@ if [ "$TRANSPORT" = "seichannel" ]; then
 fi
 
 echo ""
-echo "[*] Cleaning workspace..."
-rm -rf $WORK_DIR
-mkdir -p $WORK_DIR
+echo "[*] Cleaning workspace ($WORK_DIR)..."
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR"
 
 echo "[*] Cloning repository..."
 git clone --depth 1 --recurse-submodules --branch "$BRANCH" $REPO_URL $WORK_DIR
@@ -261,7 +262,7 @@ podman pull $IMAGE_NAME
 
 echo "[*] Building OlcRTC..."
 podman run --rm \
-    -v $WORK_DIR:/app:Z \
+    -v "$WORK_DIR:/app:Z" \
     -w /app \
     $IMAGE_NAME \
     sh -c "go mod tidy && go build -o olcrtc cmd/olcrtc/main.go"
@@ -281,7 +282,7 @@ podman run -d \
     --name $CONTAINER_NAME \
     --restart unless-stopped \
     -p $SOCKS_IP:$SOCKS_PORT:$SOCKS_PORT \
-    -v $WORK_DIR:/app:Z \
+    -v "$WORK_DIR:/app:Z" \
     -w /app \
     $IMAGE_NAME \
     ./olcrtc -mode cnc -carrier "$CARRIER" -id "$ROOM_ID" -client-id "$CLIENT_ID" -key "$KEY" \
