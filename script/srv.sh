@@ -113,7 +113,7 @@ echo ""
 
 GEN_ROOM=0
 
-if [ "$CARRIER" = "jazz" ] || [ "$CARRIER" = "wbstream" ]; then
+if [ "$CARRIER" = "jazz" ]; then
     echo "Room options:"
     echo "  1) Auto-generate new room (recommended)"
     echo "  2) Use specific room ID"
@@ -291,6 +291,7 @@ podman pull $IMAGE_NAME
 
 echo "[*] Building OlcRTC..."
 podman run --rm \
+    --network host \
     -v "$WORK_DIR:/app:Z" \
     -v $GOMOD_CACHE:/go/pkg/mod:Z \
     -v $GO_BUILD_CACHE:/root/.cache/go-build:Z \
@@ -306,6 +307,7 @@ fi
 if [ "$GEN_ROOM" = "1" ]; then
     echo "[*] Generating room via -mode gen..."
     ROOM_ID=$(podman run --rm \
+        --network host \
         -v "$WORK_DIR:/app:Z" \
         -w /app \
         $IMAGE_NAME \
@@ -337,6 +339,7 @@ fi
 
 echo "[*] Starting OlcRTC server..."
 podman run -d \
+    --network host \
     --name $CONTAINER_NAME \
     --restart unless-stopped \
     -v "$WORK_DIR:/app:Z" \
