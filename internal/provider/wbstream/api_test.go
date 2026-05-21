@@ -39,7 +39,7 @@ func TestWBStreamAPIHappyPath(t *testing.T) {
 		if r.URL.Query().Get("displayName") != "peer" {
 			t.Fatalf("displayName query = %q", r.URL.Query().Get("displayName"))
 		}
-		_ = json.NewEncoder(w).Encode(tokenResponse{RoomToken: "token"}) //nolint:goconst,lll // test literal, repetition is intentional
+		_ = json.NewEncoder(w).Encode(tokenResponse{RoomToken: "token", ServerURL: "wss://rtc-xc-01.wb.ru"}) //nolint:goconst,lll // test literal, repetition is intentional
 	})
 
 	withWBAPIServer(t, mux)
@@ -63,12 +63,12 @@ func TestWBStreamAPIHappyPath(t *testing.T) {
 	if err := joinRoom(context.Background(), access, room); err != nil {
 		t.Fatalf("joinRoom() error = %v", err)
 	}
-	token, err := getToken(context.Background(), access, room, "peer")
+	details, err := getConnectionDetails(context.Background(), access, room, "peer")
 	if err != nil {
-		t.Fatalf("getToken() error = %v", err)
+		t.Fatalf("getConnectionDetails() error = %v", err)
 	}
-	if token != "token" {
-		t.Fatalf("getToken() = %q", token)
+	if details.RoomToken != "token" || details.ServerURL != "wss://rtc-xc-01.wb.ru" {
+		t.Fatalf("getConnectionDetails() = %+v", details)
 	}
 }
 
@@ -86,8 +86,8 @@ func TestWBStreamAPIErrors(t *testing.T) {
 	if err := joinRoom(context.Background(), "access", "room"); !errors.Is(err, errJoinRoom) {
 		t.Fatalf("joinRoom() error = %v, want %v", err, errJoinRoom)
 	}
-	if _, err := getToken(context.Background(), "access", "room", "peer"); !errors.Is(err, errGetToken) {
-		t.Fatalf("getToken() error = %v, want %v", err, errGetToken)
+	if _, err := getConnectionDetails(context.Background(), "access", "room", "peer"); !errors.Is(err, errGetToken) {
+		t.Fatalf("getConnectionDetails() error = %v, want %v", err, errGetToken)
 	}
 }
 
@@ -103,7 +103,7 @@ func TestWBStreamGetRoomToken(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 	mux.HandleFunc("GET /api-room-manager/v2/room/{id}/connection-details", func(w http.ResponseWriter, _ *http.Request) {
-		_ = json.NewEncoder(w).Encode(tokenResponse{RoomToken: "token"})
+		_ = json.NewEncoder(w).Encode(tokenResponse{RoomToken: "token", ServerURL: "wss://rtc-xc-01.wb.ru"})
 	})
 
 	withWBAPIServer(t, mux)
@@ -112,11 +112,11 @@ func TestWBStreamGetRoomToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewPeer() error = %v", err)
 	}
-	token, err := p.getRoomToken(context.Background())
+	token, wsURL, err := p.getRoomCredentials(context.Background())
 	if err != nil {
-		t.Fatalf("getRoomToken() error = %v", err)
+		t.Fatalf("getRoomCredentials() error = %v", err)
 	}
-	if token != "token" {
-		t.Fatalf("getRoomToken() = %q", token)
+	if token != "token" || wsURL != "wss://rtc-xc-01.wb.ru" {
+		t.Fatalf("getRoomCredentials() = token %q wsURL %q", token, wsURL)
 	}
 }
