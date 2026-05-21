@@ -73,7 +73,14 @@ cd olcrtc
 | Флаг | Что делает |
 |---|---|
 | `--branch=<name>` | Использовать другую ветку репозитория вместо `master` |
+| `--repo-url=<url>` | Клонировать другой git remote (см. `OLCRTC_REPO_URL`) |
 | `--no-cache` | Очистить Go-кеш (`~/.cache/olcrtc`) перед сборкой - пересобрать с нуля |
+
+| Переменная | Что делает |
+|---|---|
+| `OLCRTC_REPO_URL` | URL репозитория для `git clone` (по умолчанию `openlibrecommunity/olcrtc`). Для форка: `https://github.com/sharov68/olcrtc.git` |
+| `OLCRTC_SOURCE_DIR` | Путь к уже скачанному репозиторию — скопировать в workspace вместо clone (удобно после `git pull` на сервере) |
+| `OLCRTC_DEPLOY_ROOT` | Корень каталогов `deploy-*` / `client-*` (по умолчанию `$HOME/.olrtc`) |
 
 Каталог сборки и примонтированный в контейнер `/app` по умолчанию: `$HOME/.olrtc/deploy-<8 символов>` для **`srv.sh`** и `$HOME/.olrtc/client-<8 символов>` для **`cnc.sh`** (не в `/tmp`, путь переживает перезагрузку). Другой корень задаётся переменной **`OLCRTC_DEPLOY_ROOT`**, например: `OLCRTC_DEPLOY_ROOT=/var/lib/olcrtc ./script/srv.sh` — тогда workspace будет `$OLCRTC_DEPLOY_ROOT/deploy-<id>` (или `.../client-<id>` для клиента). Старые подкаталоги `deploy-*` / `client-*` от прошлых запусков можно удалять вручную, если не нужны.
 
@@ -82,6 +89,14 @@ cd olcrtc
 ```sh
 ./script/srv.sh --no-cache              # сборка с нуля
 ./script/srv.sh --branch=dev --no-cache # ветка dev, без кеша
+
+# форк с фиксами wbstream (вместо upstream):
+export OLCRTC_REPO_URL=https://github.com/sharov68/olcrtc.git
+./script/srv.sh
+
+# или уже обновлённый клон на сервере (после git pull):
+export OLCRTC_SOURCE_DIR=$HOME/olcrtc
+./script/srv.sh
 ```
 
 ### Carrier (на каком сервисе передавать трафик)

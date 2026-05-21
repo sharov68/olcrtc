@@ -14,3 +14,19 @@ git commit   # только если merge не завершился сам
 git push fork master
 # или просто git push — если upstream уже fork/master
 origin здесь — только чтение upstream. В openlibrecommunity вы ничего не пушите.
+
+## Деплой сервера/клиента с форка
+
+`script/srv.sh` и `script/cnc.sh` по умолчанию клонируют **upstream**. Чтобы собрать код с фиксами из форка:
+
+```bash
+export OLCRTC_REPO_URL=https://github.com/sharov68/olcrtc.git
+./script/srv.sh
+```
+
+Если на сервере уже есть `git pull` в `~/olcrtc`:
+
+```bash
+export OLCRTC_SOURCE_DIR=$HOME/olcrtc
+./script/srv.sh
+```

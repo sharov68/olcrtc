@@ -8,8 +8,9 @@ set -e
 PODMAN_ID=$(tr -dc 'a-z0-9' </dev/urandom | head -c 8)
 CONTAINER_NAME="olcrtc-client-$PODMAN_ID"
 IMAGE_NAME="docker.io/library/golang:1.26-alpine"
-REPO_URL="https://github.com/openlibrecommunity/olcrtc.git"
+REPO_URL="${OLCRTC_REPO_URL:-https://github.com/openlibrecommunity/olcrtc.git}"
 DEPLOY_ROOT="${OLCRTC_DEPLOY_ROOT:-$HOME/.olrtc}"
+# Optional OLCRTC_SOURCE_DIR: copy an existing checkout instead of git clone.
 WORK_DIR="$DEPLOY_ROOT/client-$PODMAN_ID"
 
 SOCKS_IP="127.0.0.1"
@@ -22,6 +23,10 @@ while [[ $# -gt 0 ]]; do
             BRANCH="${1#*=}"
             shift
             ;;
+        --repo-url=*)
+            REPO_URL="${1#*=}"
+            shift
+            ;;
         *)
             shift
             ;;
@@ -31,6 +36,10 @@ done
 echo "=== OlcRTC Client Deployment Script ==="
 echo ""
 echo "[*] Using branch: $BRANCH"
+echo "[*] Using repo:   $REPO_URL"
+if [ -n "${OLCRTC_SOURCE_DIR:-}" ]; then
+    echo "[*] Source dir:   $OLCRTC_SOURCE_DIR (copy instead of clone)"
+fi
 echo ""
 
 if ! command -v podman &> /dev/null; then
@@ -254,8 +263,13 @@ echo "[*] Cleaning workspace ($WORK_DIR)..."
 rm -rf "$WORK_DIR"
 mkdir -p "$WORK_DIR"
 
-echo "[*] Cloning repository..."
-git clone --depth 1 --recurse-submodules --branch "$BRANCH" $REPO_URL $WORK_DIR
+if [ -n "${OLCRTC_SOURCE_DIR:-}" ] && [ -f "${OLCRTC_SOURCE_DIR}/go.mod" ]; then
+    echo "[*] Copying sources from $OLCRTC_SOURCE_DIR ..."
+    cp -a "${OLCRTC_SOURCE_DIR}/." "$WORK_DIR/"
+else
+    echo "[*] Cloning repository..."
+    git clone --depth 1 --recurse-submodules --branch "$BRANCH" "$REPO_URL" "$WORK_DIR"
+fi
 
 echo "[*] Pulling Go image..."
 podman pull $IMAGE_NAME

@@ -68,6 +68,7 @@ func (p *Peer) Connect(ctx context.Context) error {
 	if wsURL == "" {
 		wsURL = defaultWSURL
 	}
+	log.Printf("WB Stream connecting to %s", wsURL)
 
 	roomCB := &lksdk.RoomCallback{
 		ParticipantCallback: lksdk.ParticipantCallback{
