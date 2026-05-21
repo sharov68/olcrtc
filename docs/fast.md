@@ -78,7 +78,7 @@ cd olcrtc
 
 | Переменная | Что делает |
 |---|---|
-| `OLCRTC_REPO_URL` | URL репозитория для `git clone` (по умолчанию `openlibrecommunity/olcrtc`). Для форка: `https://github.com/sharov68/olcrtc.git` |
+| `OLCRTC_REPO_URL` | URL репозитория для `git clone` (в этом форке по умолчанию `sharov68/olcrtc`; для upstream: `https://github.com/openlibrecommunity/olcrtc.git`) |
 | `OLCRTC_SOURCE_DIR` | Путь к уже скачанному репозиторию — скопировать в workspace вместо clone (удобно после `git pull` на сервере) |
 | `OLCRTC_DEPLOY_ROOT` | Корень каталогов `deploy-*` / `client-*` (по умолчанию `$HOME/.olrtc`) |
 

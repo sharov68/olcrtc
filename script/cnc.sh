@@ -8,7 +8,7 @@ set -e
 PODMAN_ID=$(tr -dc 'a-z0-9' </dev/urandom | head -c 8)
 CONTAINER_NAME="olcrtc-client-$PODMAN_ID"
 IMAGE_NAME="docker.io/library/golang:1.26-alpine"
-REPO_URL="${OLCRTC_REPO_URL:-https://github.com/openlibrecommunity/olcrtc.git}"
+REPO_URL="${OLCRTC_REPO_URL:-https://github.com/sharov68/olcrtc.git}"
 DEPLOY_ROOT="${OLCRTC_DEPLOY_ROOT:-$HOME/.olrtc}"
 # Optional OLCRTC_SOURCE_DIR: copy an existing checkout instead of git clone.
 WORK_DIR="$DEPLOY_ROOT/client-$PODMAN_ID"
@@ -283,6 +283,12 @@ podman run --rm \
 
 if [ ! -f "$WORK_DIR/olcrtc" ]; then
     echo "[X] Build failed"
+    exit 1
+fi
+
+if ! grep -q 'getRoomCredentials' "$WORK_DIR/internal/provider/wbstream/peer.go" 2>/dev/null; then
+    echo "[X] Sources lack wbstream serverUrl fix (getRoomCredentials)."
+    echo "    Use OLCRTC_REPO_URL or OLCRTC_SOURCE_DIR pointing at an updated checkout."
     exit 1
 fi
 
